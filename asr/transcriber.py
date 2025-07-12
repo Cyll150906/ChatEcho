@@ -30,7 +30,7 @@ class SpeechTranscriber:
         
         # 设置默认请求头
         self.session.headers.update({
-            'Authorization': config.key,
+            'Authorization': f'Bearer {config.key}',
             'User-Agent': 'ChatEcho-ASR/1.0.0'
         })
     
