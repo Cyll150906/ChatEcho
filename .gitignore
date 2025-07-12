@@ -26,6 +26,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+chatvenv
 
 # PyInstaller
 #  Usually these files are created by a PyInstaller executable file
