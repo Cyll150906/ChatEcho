@@ -1,0 +1,14 @@
+# TTS核心依赖
+pyaudio>=0.2.11
+requests>=2.25.1
+numpy>=1.21.0
+
+# 音频处理（可选）
+pydub>=0.25.1
+
+# 数据处理
+dataclasses>=0.6; python_version<'3.7'
+
+# 开发依赖（可选）
+matplotlib>=3.3.0
+wave>=0.0.2
