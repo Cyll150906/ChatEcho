@@ -8,14 +8,14 @@ class APIClient:
             "Content-Type": "application/json"
         }
 
-    def post(self, endpoint, payload, stream=False):
+    def post(self, endpoint, payload, stream=False, timeout=None):
         url = Config.get_api_url(endpoint)
         try:
             response = requests.post(
                 url,
                 json=payload,
                 headers=self.headers,
-                timeout=Config.API_TIMEOUT,
+                timeout=timeout if timeout is not None else Config.API_TIMEOUT,
                 stream=stream
             )
             response.raise_for_status()
