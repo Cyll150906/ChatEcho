@@ -311,6 +311,14 @@ class StreamingASR:
         """
         return self.recorder.get_device_list()
     
+    def list_audio_devices(self) -> list:
+        """获取可用音频设备列表（别名方法）
+        
+        Returns:
+            设备信息列表
+        """
+        return self.get_device_list()
+    
     def test_device(self, device_index: Optional[int] = None) -> bool:
         """测试音频设备
         
@@ -385,8 +393,8 @@ class StreamingASR:
         """上下文管理器入口"""
         return self
     
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """上下文管理器出口"""
+    def close(self):
+        """关闭ASR系统，清理资源"""
         if self._is_recording:
             try:
                 self.stop_recording()
@@ -399,5 +407,12 @@ class StreamingASR:
             os.path.exists(self._current_audio_file)):
             try:
                 os.remove(self._current_audio_file)
-            except Exception:
-                pass
+                if self.config.debug:
+                    print(f"🗑️ 已清理当前音频文件: {self._current_audio_file}")
+            except Exception as e:
+                if self.config.debug:
+                    print(f"⚠️ 清理音频文件失败: {e}")
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """上下文管理器出口"""
+        self.close()
