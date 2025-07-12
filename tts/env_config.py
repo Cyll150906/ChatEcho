@@ -1,7 +1,23 @@
 """环境变量配置模块"""
 import os
+from pathlib import Path
 from typing import Optional
 from .config import AudioConfig, APIConfig, TTSConfig
+
+# 自动加载.env文件
+try:
+    from dotenv import load_dotenv
+    # 查找项目根目录的.env文件
+    current_dir = Path(__file__).parent
+    project_root = current_dir.parent
+    env_file = project_root / '.env'
+    
+    if env_file.exists():
+        load_dotenv(env_file)
+        print(f"✅ 自动加载环境配置文件: {env_file}")
+except ImportError:
+    # python-dotenv未安装，跳过自动加载
+    pass
 
 def load_from_env() -> TTSConfig:
     """从环境变量加载配置"""
@@ -17,7 +33,6 @@ def load_from_env() -> TTSConfig:
             formatted_api_key = f'Bearer {raw_api_key}'
         else:
             formatted_api_key = raw_api_key  # 保持原样，让验证函数处理
-    
     # 加载API配置
     api_config = APIConfig(
         url=os.getenv('TTS_API_URL', 'https://api.siliconflow.cn/v1/audio/speech'),
