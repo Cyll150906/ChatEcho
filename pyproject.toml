@@ -1,0 +1,15 @@
+[project]
+name = "chatecho"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dataclasses>=0.6 ; python_full_version < '3.7'",
+    "matplotlib>=3.3.0",
+    "numpy>=1.21.0",
+    "pyaudio>=0.2.11",
+    "pydub>=0.25.1",
+    "requests>=2.25.1",
+    "wave>=0.0.2",
+]

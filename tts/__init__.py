@@ -44,6 +44,9 @@ from .utils import (
 # 音频工具函数
 from .audio_utils import parse_wav_header
 
+# 导入环境配置
+from .env_config import load_from_env, validate_api_key, get_secure_config, format_api_key
+
 __version__ = "1.0.0"
 
 __all__ = [

@@ -15,7 +15,7 @@ class AudioConfig:
 class APIConfig:
     """API配置类"""
     url: str = "https://api.siliconflow.cn/v1/audio/speech"
-    key: str = "Bearer sk-oyxoqrxbymcizdfmfuzdxtudualgftadigummmozhhpdjamu"
+    key: str = ""  # 不提供默认密钥，强制用户设置环境变量
     default_model: str = "FunAudioLLM/CosyVoice2-0.5B"
     default_voice: str = "FunAudioLLM/CosyVoice2-0.5B:anna"
 

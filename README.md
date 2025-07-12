@@ -52,7 +52,43 @@ pip install -r requirements.txt
 
 ## 🚀 快速开始
 
-### 基础使用
+### 🔒 安全配置（推荐）
+
+1. **复制环境配置文件**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **编辑.env文件，设置您的API密钥**:
+   ```bash
+   TTS_API_KEY=sk-your-actual-api-key-here
+   ```
+   注意：只需要填入 sk- 开头的密钥，Bearer 前缀会自动添加
+
+3. **使用安全配置**:
+   ```python
+   from tts import StreamingTTS, get_secure_config
+   
+   # 从环境变量加载安全配置（自动格式化API密钥）
+   config = get_secure_config()
+   tts = StreamingTTS(config=config)
+   
+   try:
+       # 发送TTS请求
+       text = "你好，欢迎使用ChatEcho TTS系统！"
+       request_id = tts.send_tts_request(text)
+       print(f"开始播放: {request_id}")
+       
+       # 等待播放完成
+       tts.wait_for_completion()
+       print("播放完成")
+       
+   finally:
+       # 关闭TTS系统
+       tts.close()
+   ```
+
+### 基础使用（不推荐用于生产环境）
 
 ```python
 from tts import StreamingTTS
@@ -294,6 +330,30 @@ python -c "from tts import StreamingTTS; tts = StreamingTTS(); print('TTS初始�
 - [Requests](https://requests.readthedocs.io/) - HTTP库
 - [NumPy](https://numpy.org/) - 数值计算库
 - [SiliconFlow](https://siliconflow.cn/) - TTS API服务
+
+## 📋 注意事项
+
+### 🔒 安全性
+- **重要**: 不要将API密钥硬编码在代码中
+- 使用环境变量或.env文件管理敏感配置
+- 将.env文件添加到.gitignore中
+- 定期轮换API密钥
+
+### 🛠️ 技术要求
+- 确保已正确安装PyAudio依赖
+- API密钥需要有效的SiliconFlow账户
+- 网络连接稳定性影响流式播放效果
+- 建议在生产环境中添加适当的错误处理和重试机制
+- 音频播放可能因系统音频设备配置而异
+
+### 📈 性能优化
+- 对于高频使用场景，建议实现音频缓存
+- 考虑使用连接池减少网络开销
+- 监控API调用频率，避免触发限流
+
+### 📚 更多信息
+- 查看 [IMPROVEMENTS.md](IMPROVEMENTS.md) 获取详细的代码质量改进建议
+- 参考 [example/secure_tts_example.py](example/secure_tts_example.py) 了解安全使用方法
 
 ## 📞 联系方式
 
