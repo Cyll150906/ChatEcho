@@ -9,4 +9,5 @@ dependencies = [
     "requests",
     "webrtcvad-wheels",
     "pynput",
+    "numpy",
 ]

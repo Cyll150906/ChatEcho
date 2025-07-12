@@ -1,12 +1,11 @@
 import pyaudio
 import wave
-import requests
 import threading
 import time
 import os
-import pyaudio
 from datetime import datetime
-from config import Config, get_api_key
+from .config import Config
+from .api_client import APIClient
 
 class VoiceToTextSDK:
     """录音转文字SDK，提供简单的函数调用接口"""
@@ -19,16 +18,15 @@ class VoiceToTextSDK:
             api_key (str, optional): SiliconFlow API密钥，如果不提供则使用全局配置
             audio_device_index (int, optional): 音频设备索引
         """
-        self.api_key = api_key or Config.get_api_key()
-        self.api_url = Config.get_api_url()
-        self.model_name = Config.get_model_name()
+        self.api_client = APIClient()
+        self.model_name = Config.get_asr_model()
+        self.audio_device_index = audio_device_index
         
         # 录音参数
         self.chunk = Config.AUDIO_CHUNK
         self.format = pyaudio.paInt16
         self.channels = Config.AUDIO_CHANNELS
         self.rate = Config.AUDIO_RATE
-        self.audio_device_index = audio_device_index
         
         self.audio = None
         self.stream = None
@@ -163,16 +161,10 @@ class VoiceToTextSDK:
                     'model': self.model_name
                 }
                 
-                headers = {
-                    'Authorization': f'Bearer {self.api_key}'
-                }
-                
-                response = requests.post(
-                    self.api_url,
+                response = self.api_client.post_files(
+                    "audio/transcriptions",
                     files=files,
-                    data=data,
-                    headers=headers,
-                    timeout=Config.get_api_timeout()
+                    data=data
                 )
             
             if response.status_code == 200:

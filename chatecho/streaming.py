@@ -1,5 +1,4 @@
 import os
-import requests
 import pyaudio
 import threading
 import time
@@ -7,17 +6,21 @@ import struct
 import queue
 from typing import Optional
 import numpy as np
-import pydub
+from .config import Config
+from .api_client import APIClient
 
 class StreamingTTS:
     def __init__(self):
+        # 初始化API客户端
+        self.api_client = APIClient()
+        
         # 初始化PyAudio
         self.p = pyaudio.PyAudio()
         
         # 音频参数
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1  # 单声道
-        self.RATE = 44100
+        self.RATE = Config.TTS_SAMPLE_RATE
         self.CHUNK = 2048
         
         # 创建音频输出流
@@ -163,30 +166,23 @@ class StreamingTTS:
         if request_id is None:
             request_id = f"req_{int(time.time() * 1000)}"
         
-        url = "https://api.siliconflow.cn/v1/audio/speech"
-        
         payload = {
             "input": text,
-            "response_format": "wav",
-            "sample_rate": 44100,
+            "response_format": Config.TTS_RESPONSE_FORMAT,
+            "sample_rate": Config.TTS_SAMPLE_RATE,
             "stream": True,
-            "speed": 1,
-            "gain": 0,
-            "model": "FunAudioLLM/CosyVoice2-0.5B",
-            "voice": "FunAudioLLM/CosyVoice2-0.5B:anna"
+            "speed": Config.TTS_SPEED,
+            "gain": Config.TTS_GAIN,
+            "model": Config.TTS_MODEL,
+            "voice": Config.TTS_VOICE
         }
-        
-        headers = {
-            "Authorization": "Bearer sk-oyxoqrxbymcizdfmfuzdxtudualgftadigummmozhhpdjamu",
-            "Content-Type": "application/json"
-        }
-        
-        # 发送TTS请求
         
         try:
-            # 发送请求
-            response = requests.post(url, json=payload, headers=headers, stream=True)
-            response.raise_for_status()
+            # 使用APIClient发送流式请求
+            response = self.api_client.post_stream("audio/speech", payload)
+            
+            if response is None:
+                return None
             
             # 在新线程中处理流式响应
             thread = threading.Thread(
@@ -258,7 +254,6 @@ if __name__ == "__main__":
         import numpy as np
         import wave
         import os
-        import pydub
         
         # 设置中文字体显示
         plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
@@ -301,28 +296,12 @@ if __name__ == "__main__":
         # 创建拼接的波形图
         plt.figure(figsize=(16, 12))
         
-        # 处理现有的a.m4a文件（如果存在且可以处理）
+        # 处理生成的音频文件
         plot_index = 1
-        if os.path.exists("a.m4a"):
-            try:
-                audio = pydub.AudioSegment.from_file("a.m4a", format="m4a")
-                samples = np.array(audio.get_array_of_samples())
-                
-                plt.subplot(len(audio_files) + 1, 1, plot_index)
-                plt.plot(samples)
-                plt.title("原始音频 (a.m4a)")
-                plt.xlabel("采样点")
-                plt.ylabel("振幅")
-                plt.grid(True)
-                plot_index += 1
-                print("已添加原始音频 a.m4a 到波形图")
-            except Exception as e:
-                print(f"无法处理 a.m4a 文件 (需要安装ffmpeg): {e}")
-                print("跳过 a.m4a 文件，仅显示生成的音频文件")
         
         # 处理生成的WAV文件
         for i, audio_file in enumerate(audio_files, 1):
-            plt.subplot(len(audio_files) + (1 if os.path.exists("a.m4a") and plot_index > 1 else 0), 1, plot_index)
+            plt.subplot(len(audio_files), 1, plot_index)
             
             try:
                 with wave.open(audio_file, 'rb') as wav_file:

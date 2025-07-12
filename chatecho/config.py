@@ -17,6 +17,9 @@ class Config:
     AUDIO_CHANNELS = 1
     AUDIO_CHUNK = 1024
     TTS_SAMPLE_RATE = 44100
+    TTS_RESPONSE_FORMAT = "wav"
+    TTS_SPEED = 1
+    TTS_GAIN = 0
 
     # Directories
     TEMP_DIR = "./temp_audio"
@@ -33,3 +36,11 @@ class Config:
     def get_temp_dir():
         os.makedirs(Config.TEMP_DIR, exist_ok=True)
         return Config.TEMP_DIR
+    
+    @staticmethod
+    def get_asr_api_url():
+        return f"{Config.SILICONFLOW_BASE_URL}/audio/transcriptions"
+    
+    @staticmethod
+    def get_asr_model():
+        return Config.ASR_MODEL
