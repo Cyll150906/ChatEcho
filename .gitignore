@@ -1,0 +1,35 @@
+# Virtual Environment
+.venv/
+virtualenv/
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are created by a PyInstaller executable file
+#  but they are often created by mistake in a development environment.
+#  See https://github.com/github/gitignore/pull/222
+*.manifest
+*.spec
