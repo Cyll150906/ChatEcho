@@ -1,7 +1,0 @@
-import pyaudio
-
-# 音频参数
-AUDIO_RATE = 16000
-AUDIO_CHANNELS = 1
-CHUNK_SIZE = 1024
-AUDIO_FORMAT = pyaudio.paInt16
