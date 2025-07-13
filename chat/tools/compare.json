@@ -1,0 +1,21 @@
+{
+    "type": "function",
+    "function": {
+        "name": "compare",
+        "description": "Compare two numbers and determine which one is bigger",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "a": {
+                    "type": "number",
+                    "description": "First number"
+                },
+                "b": {
+                    "type": "number",
+                    "description": "Second number"
+                }
+            },
+            "required": ["a", "b"]
+        }
+    }
+}

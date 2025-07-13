@@ -1,4 +1,12 @@
-"""Chat module exceptions."""
+"""聊天模块异常类。
+
+包含以下异常类：
+- ChatError: 聊天相关错误的基类
+- ConfigError: 配置相关错误
+- FunctionLoadError: 函数加载错误
+- APIError: API调用错误
+- ArgumentParsingError: 参数解析错误。
+"""
 
 
 class ChatError(Exception):

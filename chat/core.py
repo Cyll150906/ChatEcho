@@ -1,12 +1,17 @@
-"""Core chat functionality with function calling support."""
+"""核心聊天功能模块。
+
+实现ChatBot类，提供函数执行、API交互和聊天流程管理功能。
+"""
 
 import json
 import re
-from typing import List, Dict, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Union
+
 from openai import OpenAI
+
 from .config import ChatConfig
+from .exceptions import APIError, ArgumentParsingError, ChatError
 from .function_loader import FunctionLoader
-from .exceptions import ChatError, APIError, ArgumentParsingError
 
 
 class ChatBot:
@@ -258,7 +263,7 @@ class ChatBot:
         return self.function_loader.get_tools()
     
     @classmethod
-    def create_with_config_file(cls, config_file: str) -> 'ChatBot':
+    def create_with_config_file(cls: type['ChatBot'], config_file: str) -> 'ChatBot':
         """从配置文件创建聊天机器人。
         
         Args:
@@ -271,7 +276,7 @@ class ChatBot:
         return cls(config)
     
     @classmethod
-    def create_default(cls) -> 'ChatBot':
+    def create_default(cls: type['ChatBot']) -> 'ChatBot':
         """创建默认配置的聊天机器人。
         
         Returns:

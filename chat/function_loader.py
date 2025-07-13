@@ -1,11 +1,14 @@
-"""Function loader for dynamic function loading and tool generation."""
+"""动态函数加载和工具模式生成模块。
 
-import os
-import json
+实现FunctionLoader类，负责从Python文件动态加载函数、生成OpenAI工具模式和管理函数配置。
+"""
+
 import importlib.util
 import inspect
-from typing import Dict, List, Any, Callable, Optional
+import json
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
 from .exceptions import FunctionLoadError
 
 

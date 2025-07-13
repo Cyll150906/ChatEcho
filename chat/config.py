@@ -1,9 +1,13 @@
-"""Configuration management for chat module."""
+"""聊天模块配置管理。
+
+提供ChatConfig数据类用于管理聊天设置，包括从文件或环境变量加载配置和验证功能。
+"""
 
 import json
 import os
-from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
+
 from .exceptions import ConfigError
 
 
@@ -30,7 +34,7 @@ class ChatConfig:
     timeout: int = 30
     
     @classmethod
-    def from_file(cls, config_file: str) -> 'ChatConfig':
+    def from_file(cls: type['ChatConfig'], config_file: str) -> 'ChatConfig':
         """从配置文件加载配置。
         
         Args:
@@ -55,7 +59,7 @@ class ChatConfig:
             raise ConfigError(f"配置参数错误: {e}")
     
     @classmethod
-    def from_env(cls) -> 'ChatConfig':
+    def from_env(cls: type['ChatConfig']) -> 'ChatConfig':
         """从环境变量加载配置。
         
         Returns:
