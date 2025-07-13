@@ -1,11 +1,12 @@
 # ChatEcho - 语音处理系统
 
-一个基于Python的语音处理系统，集成了文本转语音(TTS)和自动语音识别(ASR)功能。
+一个基于Python的语音处理系统，集成了文本转语音(TTS)、自动语音识别(ASR)和智能对话(Chat)功能。
 
 ## 🚀 功能特性
 
 - **🎵 文本转语音(TTS)**: 流式音频播放，支持播放控制
 - **🎤 语音识别(ASR)**: 音频文件转录，支持多种格式
+- **🤖 智能对话(Chat)**: 支持函数调用的AI对话系统
 - **🔧 模块化设计**: 清晰的架构，易于维护
 - **🔒 安全配置**: 环境变量管理API密钥
 
@@ -15,6 +16,7 @@
 ChatEcho/
 ├── tts/                    # TTS模块
 ├── asr/                    # ASR模块
+├── chat/                   # Chat模块
 ├── .env.example            # 环境变量示例
 ├── requirements.txt        # 项目依赖
 └── README.md              # 项目文档
@@ -48,6 +50,11 @@ TTS_VOICE=FunAudioLLM/CosyVoice2-0.5B:anna
 ASR_API_KEY=sk-your-asr-api-key-here
 ASR_API_URL=https://api.siliconflow.cn/v1/audio/transcriptions
 ASR_MODEL=FunAudioLLM/SenseVoiceSmall
+
+# Chat配置
+CHAT_API_KEY=sk-your-chat-api-key-here
+CHAT_API_URL=https://api.siliconflow.cn/v1
+CHAT_MODEL=deepseek-ai/DeepSeek-V3
 ```
 
 ### TTS使用示例
@@ -85,15 +92,34 @@ finally:
     asr.close()
 ```
 
+### Chat使用示例
+
+```python
+from chat import ChatBot
+
+# 创建ChatBot实例（自动加载环境配置）
+chatbot = ChatBot()
+
+# 简单对话
+response = chatbot.chat("你好，请介绍一下自己")
+print(f"AI回复: {response}")
+
+# 函数调用示例
+response = chatbot.function_call_playground("strawberry中有多少个r？")
+print(f"函数调用结果: {response}")
+```
+
 ### 完整语音处理流程
 
 ```python
 from tts import StreamingTTS
 from asr import StreamingASR
+from chat import ChatBot
 
-# 创建实例
+# 创建实例（自动加载环境配置）
 tts = StreamingTTS.from_env()
 asr = StreamingASR.from_env()
+chatbot = ChatBot()
 
 try:
     # 1. 语音转文本
@@ -101,9 +127,12 @@ try:
     text = asr.transcribe_file(audio_file)
     print(f"识别结果: {text}")
     
-    # 2. 文本转语音
-    response = f"您说的是：{text}"
-    tts.send_tts_request(response)
+    # 2. AI智能回复
+    ai_response = chatbot.chat(text)
+    print(f"AI回复: {ai_response}")
+    
+    # 3. 文本转语音
+    tts.send_tts_request(ai_response)
     tts.wait_for_completion()
     
 finally:

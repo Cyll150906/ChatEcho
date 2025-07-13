@@ -2,17 +2,17 @@
     "type": "function",
     "function": {
         "name": "count_letter_in_string",
-        "description": "Count the number of occurrences of a letter in a string",
+        "description": "Count letter number in a string",
         "parameters": {
             "type": "object",
             "properties": {
                 "a": {
                     "type": "string",
-                    "description": "The source string to search in"
+                    "description": "source string"
                 },
                 "b": {
                     "type": "string",
-                    "description": "The letter to count (single character)"
+                    "description": "letter"
                 }
             },
             "required": ["a", "b"]

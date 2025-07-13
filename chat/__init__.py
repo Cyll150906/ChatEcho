@@ -1,36 +1,48 @@
-"""OpenAI函数调用聊天模块。
+# Chat module for function calling with LLM
 
-提供完整的聊天系统和函数调用功能，包括配置管理、函数加载和核心聊天功能。
-
-模块列表：
-    config: 聊天设置的配置管理
-    core: 支持函数调用的核心聊天功能
-    function_loader: 动态函数加载和工具模式生成
-    exceptions: 错误处理的自定义异常类
-    functions: 一对一映射的单个函数模块
-    tools: 对应函数的工具定义JSON文件。
-"""
-
-from .config import ChatConfig
+# 核心类
 from .core import ChatBot
+from .llm_client import LLMClient
+from .function_caller import FunctionCaller
+
+# 配置类
+from .config import ChatConfig
+
+# 异常类
 from .exceptions import (
-    APIError,
-    ArgumentParsingError,
     ChatError,
-    ConfigError,
-    FunctionLoadError,
+    LLMError,
+    FunctionCallError,
+    ConfigurationError
 )
-from .function_loader import FunctionLoader
+
+# 日志配置
+from .logging_config import setup_logging
+
+# 导入环境配置（自动加载.env文件）
+from .env_config import load_from_env, validate_api_key, get_secure_config, format_api_key
 
 __version__ = "1.0.0"
 
 __all__ = [
-    "APIError",
-    "ArgumentParsingError",
-    "ChatBot",
-    "ChatConfig",
-    "ChatError",
-    "ConfigError",
-    "FunctionLoadError",
-    "FunctionLoader",
+    # 核心类
+    'ChatBot',
+    'LLMClient',
+    'FunctionCaller',
+    
+    # 配置类
+    'ChatConfig',
+    
+    # 异常类
+    'ChatError',
+    'LLMError',
+    'FunctionCallError',
+    'ConfigurationError',
+    
+    # 工具函数
+    'setup_logging',
+    'load_from_env',
+    'validate_api_key',
+    'get_secure_config',
+    'format_api_key'
 ]

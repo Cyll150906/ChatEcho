@@ -2,17 +2,17 @@
     "type": "function",
     "function": {
         "name": "compare",
-        "description": "Compare two numbers and determine which one is bigger",
+        "description": "Compare two number, which one is bigger",
         "parameters": {
             "type": "object",
             "properties": {
                 "a": {
                     "type": "number",
-                    "description": "First number"
+                    "description": "A number"
                 },
                 "b": {
                     "type": "number",
-                    "description": "Second number"
+                    "description": "A number"
                 }
             },
             "required": ["a", "b"]

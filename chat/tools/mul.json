@@ -8,11 +8,11 @@
             "properties": {
                 "a": {
                     "type": "number",
-                    "description": "First number"
+                    "description": "A number"
                 },
                 "b": {
                     "type": "number",
-                    "description": "Second number"
+                    "description": "A number"
                 }
             },
             "required": ["a", "b"]
