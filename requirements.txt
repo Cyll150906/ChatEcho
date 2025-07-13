@@ -4,12 +4,16 @@ requests>=2.28.0         # HTTP API调用
 numpy>=1.21.0            # 数值计算
 pydub>=0.25.1            # 音频处理
 
+# Chat模块依赖
+openai>=1.0.0            # OpenAI API客户端
+pydantic>=2.0.0          # 数据验证
+
 # Python标准库（通常已包含）
-dataclasses>=0.6; python_version<"3.7"
+# dataclasses>=0.6; python_version<"3.7"
 
 # 可选依赖
 matplotlib>=3.5.0
-wave  # Python标准库
+# wave  # Python标准库
 
 # 安全和配置管理
 python-dotenv>=0.19.0  # 环境变量管理
