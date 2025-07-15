@@ -69,9 +69,13 @@ chatbot = ChatBot(api_key="your_api_key_here")
 config = ChatConfig(api_key="your_api_key_here", base_url="https://api.siliconflow.cn/v1")
 chatbot = ChatBot(config=config)
 
-# 进行对话
+# 进行对话（支持连续对话和记忆功能）
 response = chatbot.chat("用中文回答：strawberry中有多少个r?")
 print(response)  # 输出: 在单词 "strawberry" 中，字母 "r" 出现了 3 次。
+
+# 继续对话，ChatBot会记住之前的对话内容
+response = chatbot.chat("那banana中有多少个a?")
+print(response)  # ChatBot会基于之前的对话上下文回答
 
 # 使用function_call_playground方法（完全参照fuc_call.py实现）
 response = chatbot.function_call_playground("用中文回答：strawberry中有多少个r?")
@@ -98,6 +102,46 @@ CHAT_MODEL=deepseek-ai/DeepSeek-V3
 # 日志级别（可选）
 CHAT_LOG_LEVEL=INFO
 ```
+
+### 连续对话和记忆管理
+
+ChatBot现在支持连续对话和记忆功能，可以在多轮对话中保持上下文：
+
+```python
+from chat.core import ChatBot
+
+chatbot = ChatBot()
+
+# 第一轮对话
+response1 = chatbot.chat("我叫张三，今年25岁")
+print(response1)
+
+# 第二轮对话 - ChatBot会记住你的信息
+response2 = chatbot.chat("我多大了？")
+print(response2)  # ChatBot会回答：根据您之前提到的信息，您今年25岁。
+
+# 查看对话历史
+history = chatbot.get_history()
+print(f"对话历史条数: {len(history)}")
+
+# 获取对话摘要
+summary = chatbot.get_conversation_summary()
+print(summary)
+
+# 清空对话历史
+chatbot.clear_history()
+
+# 设置最大对话历史长度（默认20轮）
+chatbot.set_max_history_length(10)
+```
+
+#### 记忆管理功能
+
+- **自动历史管理**: 当对话历史超过最大长度时，自动删除最早的对话
+- **上下文保持**: 在函数调用过程中保持完整的对话上下文
+- **历史查看**: 可以查看当前的对话历史
+- **历史清空**: 可以手动清空对话历史重新开始
+- **长度控制**: 可以设置最大对话历史长度，避免上下文过长
 
 ## 错误处理
 
