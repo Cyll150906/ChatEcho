@@ -17,7 +17,7 @@ def main():
     # 创建ChatBot实例
     chatbot = ChatBot()
     
-    print("\n开始对话（输入 'quit' 退出，'clear' 清空历史，'history' 查看历史）")
+    print("\n开始对话（输入 'quit吧' 退出，'clear' 清空历史，'history' 查看历史）")
     print("-" * 50)
     
     while True:

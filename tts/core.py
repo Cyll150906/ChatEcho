@@ -52,6 +52,20 @@ class StreamingTTS:
                 api_config.default_model,
                 api_config.default_voice
             )
+        else:
+            # 尝试从环境变量加载配置
+            try:
+                from .env_config import load_from_env
+                env_config = load_from_env()
+                if env_config.api.key:
+                    self.request_handler.set_api_config(
+                        env_config.api.url,
+                        env_config.api.key,
+                        env_config.api.default_model,
+                        env_config.api.default_voice
+                    )
+            except Exception as e:
+                print(f"警告：无法加载环境配置: {e}")
         
         # 音频参数（保持向后兼容）
         self.FORMAT = audio_config.format
@@ -94,6 +108,53 @@ class StreamingTTS:
         if api_key is not None:
             api_key = format_api_key(api_key)
         self.request_handler.set_api_config(api_url, api_key, default_model, default_voice)
+    
+    def synthesize(self, text: str, output_path: str, model: Optional[str] = None, 
+                   voice: Optional[str] = None, speed: float = 1.0, gain: float = 0.0, 
+                   sample_rate: int = 44100):
+        """合成语音并保存到文件
+        
+        Args:
+            text: 要合成的文本
+            output_path: 输出文件路径
+            model: 模型名称
+            voice: 音色
+            speed: 语速
+            gain: 音量增益
+            sample_rate: 采样率
+        """
+        import requests
+        import tempfile
+        from .utils import save_audio_to_file
+        
+        # 构建请求参数
+        payload = {
+            "input": text,
+            "response_format": "wav",
+            "sample_rate": sample_rate,
+            "stream": False,  # 非流式，获取完整音频
+            "speed": speed,
+            "gain": gain,
+            "model": model or self.request_handler.default_model,
+            "voice": voice or self.request_handler.default_voice
+        }
+        
+        headers = {
+            "Authorization": self.request_handler.api_key,
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            # 发送请求获取音频数据
+            response = requests.post(self.request_handler.api_url, json=payload, headers=headers)
+            response.raise_for_status()
+            
+            # 保存音频数据到文件
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+                
+        except Exception as e:
+            raise Exception(f"TTS合成失败: {str(e)}")
     
     def close(self):
         """关闭TTS系统"""

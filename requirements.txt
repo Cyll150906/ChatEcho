@@ -8,6 +8,11 @@ pydub>=0.25.1            # 音频处理
 openai>=1.0.0            # OpenAI API客户端
 pydantic>=2.0.0          # 数据验证
 
+# WebUI模块依赖
+fastapi>=0.104.1         # FastAPI框架
+uvicorn[standard]>=0.24.0 # ASGI服务器
+python-multipart>=0.0.6  # 文件上传支持
+
 # Python标准库（通常已包含）
 # dataclasses>=0.6; python_version<"3.7"
 
