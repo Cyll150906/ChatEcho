@@ -8,7 +8,7 @@ print("🤖 Testing ChatBot...")
 try:
     # 现在ChatBot会自动从环境变量加载配置，无需手动检查API密钥
     chatbot = ChatBot()
-    result = chatbot.function_call_playground("用中文回答：strawberry中有多少个r?")
+    result = chatbot.function_call_playground("你觉得太阳从西边出来吗？如果不等于，你就摇头")
     print(f"✅ Result: {result}")
 except Exception as e:
     sys.exit(f"❌ Error: {e}")

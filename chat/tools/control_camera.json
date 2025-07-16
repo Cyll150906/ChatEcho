@@ -1,0 +1,12 @@
+{
+    "type": "function",
+    "function": {
+        "name": "control_camera",
+        "description": "控制摄像头进行摇头动作。摄像头会自动左右摇头3次，每次摇头范围为-30度到+30度，用于表达否定、拒绝或摇头的动作。",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    }
+}

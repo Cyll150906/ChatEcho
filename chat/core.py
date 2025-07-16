@@ -66,8 +66,10 @@ class ChatBot:
             func_name = tool_call.function.name
             func_args = tool_call.function.arguments
             
-            # 使用eval执行函数调用（参照fuc_call.py的方案）
-            func_result = eval(f'{func_name}(**{func_args})')
+            # 使用function_caller执行函数调用
+            import json
+            func_args_dict = json.loads(func_args)
+            func_result = self.function_caller.call_function(func_name, func_args_dict)
             print(func_result)
             
             # 将函数调用相关消息添加到对话历史
@@ -155,7 +157,9 @@ class ChatBot:
         print(response)
         func1_name = response.choices[0].message.tool_calls[0].function.name
         func1_args = response.choices[0].message.tool_calls[0].function.arguments
-        func1_out = eval(f'{func1_name}(**{func1_args})')
+        import json
+        func1_args_dict = json.loads(func1_args)
+        func1_out = self.function_caller.call_function(func1_name, func1_args_dict)
         print(func1_out)
         
         messages.append(response.choices[0].message)
