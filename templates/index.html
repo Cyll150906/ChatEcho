@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatEcho - 智能语音对话</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 2rem;
+            padding-right: 10px;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant {
+            background: #f1f3f4;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .voice-orb {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voice-orb:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .voice-orb.recording {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .voice-orb.processing {
+            animation: spin 2s linear infinite;
+            background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+        }
+
+        .voice-orb.playing {
+            animation: wave 1s ease-in-out infinite alternate;
+            background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+        }
+
+        .voice-orb-icon {
+            font-size: 2.5rem;
+            color: white;
+            z-index: 2;
+        }
+
+        .voice-orb::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            border-radius: 50%;
+            animation: rotate 3s linear infinite;
+            opacity: 0;
+        }
+
+        .voice-orb:hover::before {
+            opacity: 1;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #666;
+            min-height: 1.5rem;
+            font-weight: 500;
+        }
+
+        .text-input-container {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .text-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .text-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes wave {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .chat-container {
+                padding: 1.5rem;
+            }
+            
+            .voice-orb {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .voice-orb-icon {
+                font-size: 2rem;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+
+        /* 滚动条样式 */
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .messages::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎙️ ChatEcho - 智能语音对话</h1>
+    </div>
+
+    <div class="main-container">
+        <div class="chat-container">
+            <div class="messages" id="messages"></div>
+            
+            <div class="control-panel">
+                <div class="voice-orb" id="voiceOrb">
+                    <div class="voice-orb-icon" id="orbIcon">🎤</div>
+                </div>
+                
+                <div class="status" id="status">正在连接...</div>
+                
+                <div class="text-input-container">
+                    <input type="text" class="text-input" id="textInput" placeholder="输入文字消息..." maxlength="500">
+                    <button class="send-btn" id="sendBtn">发送</button>
+                </div>
+                
+                <div class="instructions">
+                    💡 点击小球开始语音对话<br>
+                    💡 对话中点击可打断AI语音<br>
+                    💡 也可以直接输入文字对话
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class VoiceChatApp {
+            constructor() {
+                this.socket = io();
+                this.isRecording = false;
+                this.isProcessing = false;
+                this.mediaRecorder = null;
+                this.audioChunks = [];
+                
+                this.initElements();
+                this.initSocketEvents();
+                this.initEventListeners();
+            }
+            
+            initElements() {
+                this.voiceOrb = document.getElementById('voiceOrb');
+                this.orbIcon = document.getElementById('orbIcon');
+                this.status = document.getElementById('status');
+                this.messages = document.getElementById('messages');
+                this.textInput = document.getElementById('textInput');
+                this.sendBtn = document.getElementById('sendBtn');
+            }
+            
+            initSocketEvents() {
+                this.socket.on('connected', (data) => {
+                    console.log('Connected with session:', data.session_id);
+                });
+                
+                this.socket.on('status_update', (data) => {
+                    this.updateStatus(data.status);
+                });
+                
+                this.socket.on('user_message', (data) => {
+                    this.addMessage(data.text, 'user');
+                });
+                
+                this.socket.on('assistant_message', (data) => {
+                    this.addMessage(data.text, 'assistant');
+                });
+                
+                this.socket.on('recording_response', (data) => {
+                    if (!data.success) {
+                        this.updateStatus(`❌ ${data.message}`);
+                    }
+                });
+                
+                this.socket.on('interrupt_response', (data) => {
+                    if (data.success) {
+                        this.updateOrbState('ready');
+                    }
+                });
+            }
+            
+            initEventListeners() {
+                this.voiceOrb.addEventListener('click', () => {
+                    this.handleOrbClick();
+                });
+                
+                this.sendBtn.addEventListener('click', () => {
+                    this.sendTextMessage();
+                });
+                
+                this.textInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendTextMessage();
+                    }
+                });
+            }
+            
+            async handleOrbClick() {
+                if (this.isProcessing) {
+                    // 如果正在处理，尝试打断TTS
+                    this.socket.emit('interrupt_tts');
+                    return;
+                }
+                
+                if (this.isRecording) {
+                    // 停止录音
+                    this.stopRecording();
+                } else {
+                    // 开始录音
+                    await this.startRecording();
+                }
+            }
+            
+            async startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioChunks = [];
+                    
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        this.audioChunks.push(event.data);
+                    };
+                    
+                    this.mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+                        this.sendAudioData(audioBlob);
+                        
+                        // 停止所有音频轨道
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    this.updateOrbState('recording');
+                    
+                    this.socket.emit('start_recording');
+                    
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    this.updateStatus('❌ 无法访问麦克风');
+                }
+            }
+            
+            stopRecording() {
+                if (this.mediaRecorder && this.isRecording) {
+                    this.mediaRecorder.stop();
+                    this.isRecording = false;
+                    this.updateOrbState('processing');
+                }
+            }
+            
+            async sendAudioData(audioBlob) {
+                try {
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                    
+                    this.socket.emit('stop_recording', {
+                        audio_data: base64Audio
+                    });
+                    
+                } catch (error) {
+                    console.error('Error sending audio data:', error);
+                    this.updateStatus('❌ 发送音频数据失败');
+                }
+            }
+            
+            sendTextMessage() {
+                const text = this.textInput.value.trim();
+                if (!text) return;
+                
+                if (this.isProcessing) {
+                    this.updateStatus('⚠️ 系统正在处理中，请稍后');
+                    return;
+                }
+                
+                this.socket.emit('send_text', { text });
+                this.textInput.value = '';
+                this.updateOrbState('processing');
+            }
+            
+            addMessage(text, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.textContent = text;
+                
+                this.messages.appendChild(messageDiv);
+                this.messages.scrollTop = this.messages.scrollHeight;
+            }
+            
+            updateStatus(status) {
+                this.status.textContent = status;
+                
+                // 根据状态更新小球状态
+                if (status.includes('🎤')) {
+                    this.updateOrbState('recording');
+                } else if (status.includes('🔄') || status.includes('🤖') || status.includes('🔊')) {
+                    this.updateOrbState('processing');
+                    this.isProcessing = true;
+                } else if (status.includes('⏸️')) {
+                    this.updateOrbState('ready');
+                    this.isProcessing = false;
+                } else if (status.includes('🛑')) {
+                    this.updateOrbState('ready');
+                    this.isProcessing = false;
+                }
+            }
+            
+            updateOrbState(state) {
+                this.voiceOrb.className = 'voice-orb';
+                
+                switch (state) {
+                    case 'recording':
+                        this.voiceOrb.classList.add('recording');
+                        this.orbIcon.textContent = '⏹️';
+                        break;
+                    case 'processing':
+                        this.voiceOrb.classList.add('processing');
+                        this.orbIcon.textContent = '⏳';
+                        break;
+                    case 'playing':
+                        this.voiceOrb.classList.add('playing');
+                        this.orbIcon.textContent = '🔊';
+                        break;
+                    default:
+                        this.orbIcon.textContent = '🎤';
+                }
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            new VoiceChatApp();
+        });
+    </script>
+</body>
+</html>
