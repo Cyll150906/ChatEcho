@@ -20,7 +20,8 @@ wheels/
 .installed.cfg
 *.egg
 PYTHONPATH
-
+*.csv
+./profile_json_output
 # Virtual Environment
 .env
 .venv
