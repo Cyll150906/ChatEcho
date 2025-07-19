@@ -38,7 +38,7 @@ from collections import OrderedDict
 
 from .parser import XMLReportParser
 from .extractor import DataExtractor
-from .csv_writer import CSVWriter
+from .json_writer import JSONWriter
 
 
 class ReportProcessor:
@@ -65,7 +65,7 @@ class ReportProcessor:
         
         # Initialize components
         self.parser = XMLReportParser()
-        self.csv_writer = CSVWriter(str(self.output_dir))
+        self.json_writer = JSONWriter(str(self.output_dir))
     
     def process_all_files(self) -> Dict[str, Any]:
         """Process all XML files in the report directory.
@@ -264,8 +264,8 @@ class ReportProcessor:
             'output_directory': str(self.output_dir)
         }
     
-    def process_all_files_to_profile_csv(self, filename: str = 'profile_report') -> Dict[str, Any]:
-        """将所有XML文件的数据处理成档案模式的CSV文件。
+    def process_all_files_to_profile_json(self, filename: str = 'user_profiles') -> Dict[str, Any]:
+        """将所有XML文件的数据处理成档案模式的JSON文件。
         
         档案模式特点：
         - 心态分布曲线数据整合到一个单元格中，使用[]包围
@@ -273,7 +273,7 @@ class ReportProcessor:
         - 包含完整的用户信息和心理状态数据
         
         Args:
-            filename (str): 输出CSV文件名（不含扩展名）
+            filename (str): 输出JSON文件名（不含扩展名）
             
         Returns:
             Dict[str, Any]: 处理结果统计信息
@@ -284,7 +284,7 @@ class ReportProcessor:
             print(f"No XML files found in {self.report_dir}")
             return {'processed_files': 0, 'failed_files': 0, 'output_files': []}
         
-        print(f"Processing {len(xml_files)} XML files to profile CSV")
+        print(f"Processing {len(xml_files)} XML files to profile JSON")
         
         all_profile_data = []
         processed_files = 0
@@ -310,6 +310,9 @@ class ReportProcessor:
                 # 提取心态分布曲线数据
                 curve_data = extractor.extract_distribution_curve_data()
                 
+                # 提取基准曲线数据
+                base_curve_data = extractor.extract_base_curve_data()
+                
                 # 创建档案记录（使用OrderedDict确保标准顺序）
                 profile_record = OrderedDict([
                     # 1. 基本身份信息
@@ -328,7 +331,6 @@ class ReportProcessor:
                     ('processed_time', str(Path(xml_file).stat().st_mtime)),
                     
                     # 4. 脑疲劳状态
-                    ('brain_fatigue_level', regular_data.get('brain_fatigue_level', '')),
                     ('brain_fatigue_state', regular_data.get('brain_fatigue_state', '')),
                     
                     # 5. 情绪状态
@@ -336,13 +338,11 @@ class ReportProcessor:
                     ('energy', regular_data.get('energy', '')),
                     
                     # 6. 情绪变化信息
-                    ('emotional_variation_title', regular_data.get('emotional_variation_title', '')),
                     ('emotional_variation_value', regular_data.get('emotional_variation_value', '')),
                     ('emotional_variation_decision', regular_data.get('emotional_variation_decision', '')),
                     ('emotional_variation_text', regular_data.get('emotional_variation_text', '')),
                     
                     # 7. 心态分布标题信息
-                    ('mind_distribution_title', regular_data.get('mind_distribution_title', '')),
                     ('distribution_curve_title', regular_data.get('distribution_curve_title', '')),
                 ])
                 
@@ -371,7 +371,6 @@ class ReportProcessor:
                     profile_record['distribution_curve_data'] = curve_points_str
                     
                     # 10. 曲线数据统计信息
-                    profile_record['curve_total_points'] = len(curve_data)
                     profile_record['curve_non_zero_points'] = len([p for p in curve_data if float(p.get('y', 0)) > 0])
                     
                     # 找到最大Y值点
@@ -381,11 +380,13 @@ class ReportProcessor:
                     profile_record['curve_max_y_point_x'] = max_y_point.get('x', '')
                 else:
                     profile_record['distribution_curve_data'] = '[]'
-                    profile_record['curve_total_points'] = 0
                     profile_record['curve_non_zero_points'] = 0
                     profile_record['curve_max_y_value'] = ''
                     profile_record['curve_max_y_point_id'] = ''
                     profile_record['curve_max_y_point_x'] = ''
+                
+                # 11. 基准曲线数据（标准正态分布）- 仅用于图表生成，不保存到JSON
+                # base_curve_data 仅在图表生成时使用，不存储到输出文件中
                 
                 all_profile_data.append(profile_record)
                 processed_files += 1
@@ -394,11 +395,11 @@ class ReportProcessor:
                 print(f"Error processing {xml_file.name}: {e}")
                 failed_files += 1
         
-        # 创建档案CSV文件
+        # 创建档案JSON文件
         output_files = []
         if all_profile_data:
             try:
-                profile_file = self.csv_writer.write_data(all_profile_data, filename)
+                profile_file = self.json_writer.write_data(all_profile_data, filename)
                 output_files.append(profile_file)
                 print(f"Created profile report: {Path(profile_file).name}")
                 print(f"Total profiles: {len(all_profile_data)}")
@@ -414,7 +415,7 @@ class ReportProcessor:
                 print(f"Failed to create profile report: {e}")
         
         # Print summary
-        print(f"\nProfile CSV Processing Summary:")
+        print(f"\nProfile JSON Processing Summary:")
         print(f"Total files found: {len(xml_files)}")
         print(f"Successfully processed: {processed_files}")
         print(f"Failed to process: {failed_files}")
@@ -430,11 +431,11 @@ class ReportProcessor:
             'total_records': len(all_profile_data)
         }
     
-    def process_all_files_to_single_csv(self, filename: str = 'complete_report_data') -> Dict[str, Any]:
-        """将所有XML文件的数据（包括常规数据和心态分布曲线数据）合并到一个CSV文件中。
+    def process_all_files_to_single_json(self, filename: str = 'complete_report_data') -> Dict[str, Any]:
+        """将所有XML文件的数据（包括常规数据和心态分布曲线数据）合并到一个JSON文件中。
         
         Args:
-            filename (str): 输出CSV文件名（不含扩展名）
+            filename (str): 输出JSON文件名（不含扩展名）
             
         Returns:
             Dict[str, Any]: 处理结果统计信息
@@ -445,7 +446,7 @@ class ReportProcessor:
             print(f"No XML files found in {self.report_dir}")
             return {'processed_files': 0, 'failed_files': 0, 'output_files': []}
         
-        print(f"Processing {len(xml_files)} XML files to single CSV")
+        print(f"Processing {len(xml_files)} XML files to single JSON")
         
         all_combined_data = []
         processed_files = 0
@@ -491,7 +492,6 @@ class ReportProcessor:
                     combined_record['distribution_curve_data'] = curve_points_str
                     
                     # 添加曲线数据统计信息
-                    combined_record['curve_total_points'] = len(curve_data)
                     combined_record['curve_non_zero_points'] = len([p for p in curve_data if float(p.get('y', 0)) > 0])
                     
                     # 找到最大Y值点
@@ -501,7 +501,6 @@ class ReportProcessor:
                     combined_record['curve_max_y_point_x'] = max_y_point.get('x', '')
                 else:
                     combined_record['distribution_curve_data'] = '[]'
-                    combined_record['curve_total_points'] = 0
                     combined_record['curve_non_zero_points'] = 0
                     combined_record['curve_max_y_value'] = ''
                     combined_record['curve_max_y_point_id'] = ''
@@ -514,11 +513,11 @@ class ReportProcessor:
                 print(f"Error processing {xml_file.name}: {e}")
                 failed_files += 1
         
-        # 创建单一的合并CSV文件
+        # 创建单一的合并JSON文件
         output_files = []
         if all_combined_data:
             try:
-                combined_file = self.csv_writer.write_data(all_combined_data, filename)
+                combined_file = self.json_writer.write_data(all_combined_data, filename)
                 output_files.append(combined_file)
                 print(f"Created complete report: {Path(combined_file).name}")
                 print(f"Total records: {len(all_combined_data)}")
@@ -533,7 +532,7 @@ class ReportProcessor:
                 print(f"Failed to create complete report: {e}")
         
         # Print summary
-        print(f"\nSingle CSV Processing Summary:")
+        print(f"\nSingle JSON Processing Summary:")
         print(f"Total files found: {len(xml_files)}")
         print(f"Successfully processed: {processed_files}")
         print(f"Failed to process: {failed_files}")

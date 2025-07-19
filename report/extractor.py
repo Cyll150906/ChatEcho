@@ -267,6 +267,41 @@ class DataExtractor:
         
         return curve_data
     
+    def extract_base_curve_data(self) -> List[Dict[str, str]]:
+        """提取基准曲线数据。
+        
+        从XML的MindDistribution/BaseCurve节点中提取标准正态分布曲线的数据点，
+        用于与心态分布曲线进行对比分析。
+        
+        Returns:
+            List[Dict[str, str]]: 包含所有基准曲线点的列表，每个点包含以下字段：
+                - point_id: 点的标识符（如pt0, pt1, pt2等）
+                - x: X坐标值（字符串格式）
+                - y: Y坐标值（字符串格式）
+                
+        Note:
+            - 基准曲线通常是标准正态分布
+            - 用于与实际心态分布曲线进行对比
+            - 如果没有找到基准曲线数据，返回空列表
+        """
+        base_curve_data = []
+        mind_elem = self.root.find('MindDistribution')
+        
+        if mind_elem is not None:
+            base_curve_elem = mind_elem.find('BaseCurve')
+            if base_curve_elem is not None:
+                # Find all point elements (pt0, pt1, pt2, etc.)
+                for child in base_curve_elem:
+                    if child.tag.startswith('pt'):
+                        point_data = {
+                            'point_id': child.tag,
+                            'x': child.get('x', ''),
+                            'y': child.get('y', '')
+                        }
+                        base_curve_data.append(point_data)
+        
+        return base_curve_data
+    
     def extract_all_data(self) -> Dict[str, Any]:
         """提取所有数据字段。
         
